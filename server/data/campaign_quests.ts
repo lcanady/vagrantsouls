@@ -1,0 +1,248 @@
+/**
+ * Campaign Quest definitions
+ * "The Goblin and the Goblet" — 20 quests set in Northreach
+ */
+
+export interface CampaignQuest {
+  id: string;           // "CQ1" through "CQ20"
+  order: number;        // 1-20
+  title: string;
+  encounterModifier: number | null;  // null = N/A (no fixed modifier)
+  encounterTable: string;            // "E" | "EA" | "custom" | "varies"
+  successReward: string;
+  failurePenalty: string;
+  objective: string;
+  story: string;
+  completionNote?: string;           // what happens on completion
+}
+
+export const CAMPAIGN_QUESTS: CampaignQuest[] = [
+  {
+    id: "CQ1", order: 1,
+    title: "Getting to Dirtwood",
+    encounterModifier: -20,
+    encounterTable: "E",
+    successReward: "+150gp",
+    failurePenalty: "-½gp",
+    objective: "Explore the ruins of Ender until any 10 areas have been added to the dungeon sheet.",
+    story: "At a junction, a broken sign directs you off the main road towards Dirtwood. On the way, you and your horse Swifty are ambushed by hobgoblins via a tripwire. After defeating them, you reach Dirtwood and learn that the dwarf Yarkwin has headed to the Fire Hole at the base of Mount Brin. Passing the ruins of Ender, you decide to have a quick look.",
+    completionNote: "Continue with Campaign Quest 2.",
+  },
+  {
+    id: "CQ2", order: 2,
+    title: "The Search for Yarkwin",
+    encounterModifier: -20,
+    encounterTable: "EA",
+    successReward: "+180gp",
+    failurePenalty: "-½gp",
+    objective: "All encounters use table EA. Explore until you find a skeleton (41-45 or 96-100 on table F), or Kill skeleton 54 on table G, or Kill 3 monsters 34-37 on table EA.",
+    story: "The Burning Lands are merciless. You descend into the Fire Hole beneath Mount Brin, almost out of water. The heat is unbearable but you push on searching for Yarkwin.",
+    completionNote: "Add 'Yarkwin's Spell Book' and 'Yarkwin's Journal' to the adventure sheet. Continue with Campaign Quest 3.",
+  },
+  {
+    id: "CQ3", order: 3,
+    title: "The Fallen City",
+    encounterModifier: null,
+    encounterTable: "varies",
+    successReward: "+1300gp",
+    failurePenalty: "-½gp",
+    objective: "Enter the city sewers. All encounter rolls use 3d10 on table E. Loot 8 parts from the monsters in the sewers. Cost: pay 1000gp to have Yarkwin's books translated.",
+    story: "You arrive at the Fallen City, the dwarven capital, and commission a scribe to translate Yarkwin's books for 1000gp. To raise the funds you answer a city notice to exterminate vermin in the sewers.",
+    completionNote: "Remove 1000gp. Roll twice on table S and add results to spell book. Continue with Campaign Quest 4.",
+  },
+  {
+    id: "CQ4", order: 4,
+    title: "The Pits of Deepmine",
+    encounterModifier: -20,
+    encounterTable: "EA",
+    successReward: "+300gp",
+    failurePenalty: "-½gp",
+    objective: "Explore until 6 areas have been added to the dungeon sheet, then add +5 when rolling on table M. The next Objective Area is the Lair of a Succubus Queen — Kill monster 58 on table EA (she has +10 HP, ignores escape reactions, and drops 'Succubus Queen's Heart' + W+20).",
+    story: "The journey takes you across the King's Bridge. Deep in the southern pits you must find and kill a Succubus Queen — Yarkwin's journal mentions needing her heart for the Breaking Spell.",
+    completionNote: "Continue with Campaign Quest 5.",
+  },
+  {
+    id: "CQ5", order: 5,
+    title: "Gogorren",
+    encounterModifier: -20,
+    encounterTable: "E",
+    successReward: "+300gp",
+    failurePenalty: "-½gp",
+    objective: "Explore the mines of Gogorren until any 10 areas have been added to the dungeon sheet, then add +10 when rolling on table M. The next Objective Area contains a Zombie Lord encounter (HP 16/4, AV 50, Def 1, Dmg +1, abilities: Disease/Pack/Allies 4). All Zombie Lord escape results are ignored.",
+    story: "In the city of Gogorren you seek Yarkwin's brother Tarin, but find his home empty with a note saying he's gone to Deepmine. You follow him into the mine.",
+    completionNote: "Add 'Tarin's Key' to adventure sheet. Roll 5 times on table N. Add 'Map of Goblin Nest' to adventure sheet. Continue with Campaign Quest 6.",
+  },
+  {
+    id: "CQ6", order: 6,
+    title: "The Goblins Nest",
+    encounterModifier: null,
+    encounterTable: "custom",
+    successReward: "+350gp",
+    failurePenalty: "-½gp",
+    objective: "Use the Goblin Nest encounter table for all encounters. Loot 1 Objective Item (Goblin Key, 80gp) from any monster marked with a symbol. Find 2 Objective Areas. Each Objective Area contains a Goblin King (ignores escape reactions). The second Objective Area also has a locked chest that can only be opened with the Goblin Key — contains 1d100gp, legendary armour (roll table A then table L), and the Goblin Skin of the Goblet.",
+    story: "Using Tarin's map, you navigate the dark and twisted Forest of Farmendell to find the Goblin Nest. The Goblin Skin of the Goblet is a Dark Scroll written in goblin tongue.",
+    completionNote: "Add gold, legendary armour, and Goblin Skin of the Goblet. Continue with Campaign Quest 7.",
+  },
+  {
+    id: "CQ7", order: 7,
+    title: "The Wizard's Tower",
+    encounterModifier: -20,
+    encounterTable: "EA",
+    successReward: "+500gp",
+    failurePenalty: "-½gp",
+    objective: "Explore until 12 areas have been added to the dungeon sheet, then add +10 when rolling on table M. The next Objective Area is The Wizard's Tower — Kill monster 75 on table EA (Hell Hounds, ignores escape reactions) to rescue the wizard Bendrell.",
+    story: "Your horse Swifty is stolen. You travel on foot to Farmendell, learn the Goblin Skin may be a Dark Scroll, and sail to Reaching Claw Island to find the wizard Bendrell in his tower.",
+    completionNote: "Remove 'Goblin Skin of the Goblet'. Continue with Campaign Quest 8.",
+  },
+  {
+    id: "CQ8", order: 8,
+    title: "The Burial Grounds of the Resting",
+    encounterModifier: -15,
+    encounterTable: "EA",
+    successReward: "+400gp",
+    failurePenalty: "-½gp",
+    objective: "Use table EA for all encounters. Undead monsters (C) gain +10 AV and ignore escape reactions. Defeating a monster in a red area adds +5 to the encounter modifier. Explore until 4 green areas have been added. The 4th green area contains a Mystic Pool — roll twice on table EA and kill both monsters in order.",
+    story: "Bendrell's Unveil Spell has transported the Dark Scroll to one of four Mystic Pools. You fly by pegasus to the Burial Grounds of the Resting to recover it.",
+    completionNote: "Add +1 DEF to time track. The scroll found is not the Goblin Scroll — roll on table S and add 'Scroll of [result]'. Continue with Campaign Quest 9.",
+  },
+  {
+    id: "CQ9", order: 9,
+    title: "Saltwater City",
+    encounterModifier: -10,
+    encounterTable: "E",
+    successReward: "+200gp",
+    failurePenalty: "-½gp",
+    objective: "Explore a seaside cave. When the second Objective Area is found, Kill monster 67 on table E (Skeleton Spider, ignores escape reactions). After rescuing a halfling boy, retrace back to the entrance — one area per turn, rolling 1d10 each turn (on 5 or less, kill another skeleton spider before proceeding).",
+    story: "Bendrell never shows at the Inn of the Wizard's Hat. A distressed halfling mother begs you to rescue her son from a cave filled with skeleton spiders.",
+    completionNote: "Continue with Campaign Quest 10.",
+  },
+  {
+    id: "CQ10", order: 10,
+    title: "The Sea Serpent",
+    encounterModifier: -10,
+    encounterTable: "E",
+    successReward: "+200gp",
+    failurePenalty: "-½gp",
+    objective: "Explore inside the sea serpent's lair. After the first Objective Area, add +10 when rolling on table M. Escape when the third Objective Area has been found.",
+    story: "Your ship is swallowed whole by the legendary sea serpent Jormungander. You cling to a tooth as she dives deep, depositing you in her underground lair cave.",
+    completionNote: "Remove all belt items. Continue with Campaign Quest 11.",
+  },
+  {
+    id: "CQ11", order: 11,
+    title: "The City Port of Longfire",
+    encounterModifier: -10,
+    encounterTable: "E",
+    successReward: "+250gp",
+    failurePenalty: "-½gp",
+    objective: "Search the Longfire city dungeons. Explore until you Kill 3 monsters. The third kill drops a special item. Any monster 66 or higher adds +5 to the encounter modifier.",
+    story: "Arriving at Longfire by fishing boat, you seek Bendrell and clues about the Dark Scroll. The city guards recruit you to clear their overrun dungeons.",
+    completionNote: "Continue with Campaign Quest 12.",
+  },
+  {
+    id: "CQ12", order: 12,
+    title: "The Bog of the Dead",
+    encounterModifier: -10,
+    encounterTable: "EA",
+    successReward: "+400gp",
+    failurePenalty: "-½gp",
+    objective: "Use table EA. Explore until 3 red areas have been added. All undead (C) monsters gain +5 AV. Find the second Mystic Pool in the 3rd red area.",
+    story: "Deep in the Elven treeline lies the Bog of the Dead — a haunted marsh where the second Mystic Pool may hold the Dark Scroll.",
+    completionNote: "Continue with Campaign Quest 13.",
+  },
+  {
+    id: "CQ13", order: 13,
+    title: "Merryton in Turmoil",
+    encounterModifier: -10,
+    encounterTable: "E",
+    successReward: "+300gp",
+    failurePenalty: "-½gp",
+    objective: "Explore the troubled town outskirts. Kill 5 monsters. Locate and rescue a prisoner held in the third Objective Area.",
+    story: "The coastal town of Merryton is under siege by raiders. The town elder begs for help before you can continue your search for Bendrell.",
+    completionNote: "Continue with Campaign Quest 14.",
+  },
+  {
+    id: "CQ14", order: 14,
+    title: "The Jungles of Drud",
+    encounterModifier: 0,
+    encounterTable: "EA",
+    successReward: "+500gp",
+    failurePenalty: "-½gp",
+    objective: "Use table EA. Explore until you find the Elven Ruins. Loot 1 Part from a monster 83 or higher. Objective Area contains a guardian creature.",
+    story: "The jungle of Drud conceals ancient elven ruins said to house the third Mystic Pool and clues to the goblet's location.",
+    completionNote: "Continue with Campaign Quest 15.",
+  },
+  {
+    id: "CQ15", order: 15,
+    title: "Drud is Under Attack",
+    encounterModifier: +5,
+    encounterTable: "EA",
+    successReward: "+600gp",
+    failurePenalty: "-5 Skill",
+    objective: "Use table EA. The jungle settlement of Drud is under attack. Kill 10 monsters to repel the invaders. Any monster 66 or higher grants a bonus loot roll.",
+    story: "A tribe of beastmen and their champion have launched a full assault on the jungle village. You must hold the line.",
+    completionNote: "Continue with Campaign Quest 16.",
+  },
+  {
+    id: "CQ16", order: 16,
+    title: "The Alliance Stones",
+    encounterModifier: 0,
+    encounterTable: "E",
+    successReward: "+600gp",
+    failurePenalty: "-5 Skill",
+    objective: "Explore ancient ruins. Find 3 Alliance Stones — 1 per Objective Area. Each Objective Area contains a guardian monster (roll 1d10+70 on table E).",
+    story: "Ancient Alliance Stones scattered through the ruins of a forgotten civilisation hold the key to deciphering Yarkwin's last clue about the goblet.",
+    completionNote: "Continue with Campaign Quest 17.",
+  },
+  {
+    id: "CQ17", order: 17,
+    title: "Blitsworth",
+    encounterModifier: -10,
+    encounterTable: "E",
+    successReward: "+700gp",
+    failurePenalty: "-5 Skill",
+    objective: "Explore the city underbelly. Loot 3 weapons and 3 armour. Find and interrogate an informant in the second Objective Area.",
+    story: "The city of Blitsworth is a hive of criminal activity. Somewhere in its underbelly is a fence who dealt in the stolen goblets from the original raid.",
+    completionNote: "Continue with Campaign Quest 18.",
+  },
+  {
+    id: "CQ18", order: 18,
+    title: "The Arcane Tower",
+    encounterModifier: -10,
+    encounterTable: "EA",
+    successReward: "+1000gp",
+    failurePenalty: "-10 Skill",
+    objective: "Use table EA. Explore the Arcane Tower until 15 areas have been added. Objective Areas trigger special magical traps. Kill the Arcane Guardian in the 3rd Objective Area (monster 80 on table EA, ignores escape reactions, +20 HP).",
+    story: "Bendrell's Arcane Tower holds his research into the Breaking Spell. But something dark has taken hold of the tower since the Dark Scroll passed through.",
+    completionNote: "Add 'Breaking Spell' to the spell book. Continue with Campaign Quest 19.",
+  },
+  {
+    id: "CQ19", order: 19,
+    title: "Tunnels of Winterhall",
+    encounterModifier: +5,
+    encounterTable: "EA",
+    successReward: "+1200gp",
+    failurePenalty: "-10 Skill",
+    objective: "Use table EA. The frozen tunnels use modified encounter rolls (all encounters +5). Explore until 4 blue areas have been found. The 4th blue area contains the goblet — guarded by a Vampire Lord (monster 94 on table EA, ignores all escape reactions, +15 HP).",
+    story: "Deep beneath the frozen keep of Winterhall, the goblet rests in the vaults. But a Vampire Lord has made it his treasure, and he does not share.",
+    completionNote: "Add 'The Goblet' to adventure sheet. Continue with Campaign Quest 20.",
+  },
+  {
+    id: "CQ20", order: 20,
+    title: "Urackhire, City of Goblins",
+    encounterModifier: +10,
+    encounterTable: "EA",
+    successReward: "+2000gp, +2 Rep",
+    failurePenalty: "-1 Rep, -10 Skill",
+    objective: "Use table EA with +10 encounter modifier. Enter Urackhire — the ancient city of goblins. Destroy the Dark Scroll at the Heart of the City in the 3rd Objective Area. The final guardian is a Goblin Archmage (AV 65, Def 5, Dmg +5, HP 40/10, abilities: Dark Magic/Allies 10, ignores all escape reactions). Cast the Breaking Spell to destroy the scroll.",
+    story: "The ultimate confrontation. Urackhire, the legendary buried city of goblins, is the origin of the Dark Scroll and the site where the goblet story began. The Breaking Spell will end it.",
+    completionNote: "CAMPAIGN COMPLETE! The Goblin and the Goblet has been resolved. Your adventurer's legend is secured in the annals of Northreach.",
+  },
+];
+
+export function getCampaignQuest(id: string): CampaignQuest | undefined {
+  return CAMPAIGN_QUESTS.find(q => q.id === id);
+}
+
+export function getNextCampaignQuest(currentOrder: number): CampaignQuest | undefined {
+  return CAMPAIGN_QUESTS.find(q => q.order === currentOrder + 1);
+}

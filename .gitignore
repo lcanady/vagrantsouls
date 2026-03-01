@@ -1,0 +1,21 @@
+# Environment
+.env
+
+# Source material
+books/
+
+# Dependencies
+node_modules/
+d100-bot/node_modules/
+
+# Deno KV databases
+*.db
+*.db-shm
+*.db-wal
+
+# Tool workspaces
+.agent/
+.claude/
+
+# Discord bot
+d100-bot/.env

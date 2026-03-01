@@ -1,0 +1,23 @@
+# Dependencies (rebuilt inside container)
+node_modules/
+d100-bot/node_modules/
+
+# Environment & secrets
+.env
+d100-bot/.env
+
+# Source material (large, not needed at runtime)
+books/
+
+# Runtime databases
+*.db
+*.db-shm
+*.db-wal
+
+# Tool workspaces
+.agent/
+.claude/
+
+# Git
+.git/
+.gitignore

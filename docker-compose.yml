@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4200:4200"
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - CHROMA_URL=http://vector-db:8000
+    depends_on:
+      - vector-db
+    restart: unless-stopped
+
+  bot:
+    build:
+      context: ./d100-bot
+      dockerfile: Dockerfile
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
+      - DISCORD_GUILD_ID=${DISCORD_GUILD_ID}
+      - D100_API_URL=http://api:4200
+      - FEED_CHANNEL_ID=${FEED_CHANNEL_ID}
+      - FALLEN_CHANNEL_ID=${FALLEN_CHANNEL_ID}
+      - DUNGEON_ACCESS_CHANNEL_ID=${DUNGEON_ACCESS_CHANNEL_ID}
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  vector-db:
+    image: chromadb/chroma:latest
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    restart: unless-stopped
+
+volumes:
+  chroma_data:
