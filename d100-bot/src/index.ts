@@ -27,6 +27,17 @@ import * as dungeonMove from './interactions/dungeon/move.ts';
 import * as dungeonSearch from './interactions/dungeon/search.ts';
 import * as dungeonCamp from './interactions/dungeon/camp.ts';
 
+// Camp sub-flow interactions
+import * as campHeal from './interactions/dungeon/camp/heal.ts';
+import * as campRepair from './interactions/dungeon/camp/repair.ts';
+import * as campTrade from './interactions/dungeon/camp/trade.ts';
+import * as campTrain from './interactions/dungeon/camp/train.ts';
+import * as campEmpire from './interactions/dungeon/camp/empire.ts';
+import * as campWitchery from './interactions/dungeon/camp/witchery.ts';
+import * as campBeast from './interactions/dungeon/camp/beast.ts';
+import * as campArcanist from './interactions/dungeon/camp/arcanist.ts';
+import * as campArtisan from './interactions/dungeon/camp/artisan.ts';
+
 // Combat interactions
 import * as combatAttack from './interactions/combat/attack.ts';
 import * as combatDefend from './interactions/combat/defend.ts';
@@ -113,6 +124,24 @@ client.on('interactionCreate', async (interaction: Interaction) => {
       const i = interaction as ModalSubmitInteraction;
       if (i.customId === step1Modal.customIdPrefix) {
         await step1Modal.execute(i, chargenSessions);
+      } else if (i.customId === 'camp:heal:submit') {
+        await campHeal.handleModal(i, dungeonSessions);
+      } else if (i.customId === 'camp:repair:submit') {
+        await campRepair.handleModal(i, dungeonSessions);
+      } else if (i.customId.startsWith('camp:trade:') && i.customId.endsWith(':submit')) {
+        await campTrade.handleModal(i, dungeonSessions);
+      } else if (i.customId === 'camp:train:submit') {
+        await campTrain.handleModal(i, dungeonSessions);
+      } else if (i.customId === 'camp:empire:submit') {
+        await campEmpire.handleModal(i, dungeonSessions);
+      } else if (i.customId === 'camp:witchery:brew:submit') {
+        await campWitchery.handleModal(i, dungeonSessions);
+      } else if (i.customId.startsWith('camp:beast:') && i.customId.endsWith(':submit')) {
+        await campBeast.handleModal(i, dungeonSessions);
+      } else if (i.customId.startsWith('camp:arcanist:') && i.customId.endsWith(':submit')) {
+        await campArcanist.handleModal(i, dungeonSessions);
+      } else if (i.customId.startsWith('camp:artisan:') && i.customId.endsWith(':submit')) {
+        await campArtisan.handleModal(i, dungeonSessions);
       }
       return;
     }
@@ -134,9 +163,28 @@ client.on('interactionCreate', async (interaction: Interaction) => {
         await dungeonSearch.execute(i, dungeonSessions);
       } else if (id === 'dungeon:camp' || id === 'camp:back') {
         await dungeonCamp.execute(i, dungeonSessions);
-      } else if (id.startsWith('camp:')) {
-        // Camp sub-flow stubs — coming in Phase 4 sub-flows
-        await i.reply({ content: '⚙️ This camp action is coming in the next update!', ephemeral: true });
+      // ── Camp sub-flows ─────────────────────────────────────────────────────
+      } else if (id === 'camp:heal') {
+        await campHeal.handleButton(i, dungeonSessions);
+      } else if (id === 'camp:repair') {
+        await campRepair.handleButton(i, dungeonSessions);
+      } else if (id === 'camp:trade' || id.startsWith('camp:trade:')) {
+        await campTrade.handleButton(i, dungeonSessions);
+      } else if (id === 'camp:train') {
+        await campTrain.handleButton(i, dungeonSessions);
+      } else if (id === 'camp:empire') {
+        await campEmpire.handleButton(i, dungeonSessions);
+      } else if (id === 'camp:witchery' || id === 'camp:witchery:brew') {
+        await campWitchery.handleButton(i, dungeonSessions);
+      } else if (id === 'camp:witchery:clear') {
+        await campWitchery.handleClearButton(i, dungeonSessions);
+      } else if (id === 'camp:beast' || id.startsWith('camp:beast:')) {
+        await campBeast.handleButton(i, dungeonSessions);
+      } else if (id === 'camp:arcanist' || id.startsWith('camp:arcanist:')) {
+        await campArcanist.handleButton(i, dungeonSessions);
+      } else if (id === 'camp:artisan' || id.startsWith('camp:artisan:')) {
+        await campArtisan.handleButton(i, dungeonSessions);
+      // ── Combat ─────────────────────────────────────────────────────────────
       } else if (id.startsWith('combat:attack:')) {
         await combatAttack.execute(i, dungeonSessions);
       } else if (id === 'combat:defend') {
