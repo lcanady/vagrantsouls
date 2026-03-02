@@ -16,7 +16,7 @@ const SCREEN_STYLE = {
 
 const screen = blessed.screen({
   smartCSR: true,
-  title: "D100 Dungeon Client",
+  title: "Vagrant Souls Client",
   style: SCREEN_STYLE,
   fullUnicode: true,
 });

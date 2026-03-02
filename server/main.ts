@@ -36,7 +36,7 @@ app.get("/", (c: Context) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VagrantSoul — D100 Dungeon API</title>
+  <title>Vagrant Souls</title>
   <style>
     body { margin: 0; background: #1a1a2e; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: monospace; color: #f0c040; }
     img { max-width: 480px; width: 90%; border-radius: 8px; }
@@ -45,7 +45,7 @@ app.get("/", (c: Context) => {
 </head>
 <body>
   <img src="/logo.png" alt="VagrantSoul">
-  <p>D100 DUNGEON API · v1</p>
+  <p>VAGRANT SOULS · v1</p>
 </body>
 </html>`);
 });

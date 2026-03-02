@@ -1,13 +1,10 @@
- _   _  ___  _____ ______  ___   _   _ _____ _____  _____ _   _ _
-| | | |/ _ \|  __ \| ___ \/ _ \ | \ | |_   _/  ___||  _  | | | | |
-| | | / /_\ \ |  \/| |_/ / /_\ \|  \| | | | \ `--. | | | | | | | |
-| | | |  _  | | __ |    /|  _  || . ` | | |  `--. \| | | | | | | |
-\ \_/ / | | | |_\ \| |\ \| | | || |\  | | | /\__/ /\ \_/ / |_| | |____
- \___/\_| |_/\____/\_| \_\_| |_/\_| \_/ \_/ \____/  \___/ \___/\_____/
+<p align="center">
+  <img src="d100-bot/assets/logo.png" alt="Vagrant Souls" width="480">
+</p>
 
-# D100 Dungeon API
+# Vagrant Souls
 
-A REST API backend for playing [D100 Dungeon](https://www.drivethrurpg.com/product/231010/D100-Dungeon)—the solo dungeon-crawling tabletop RPG—powered by Deno, Hono, and an AI narrator backed by Google Gemini and RAG over the game's rulebook.
+A REST API backend for Vagrant Souls — our digital spin on the [D100 Dungeon](https://www.drivethrurpg.com/product/231010/D100-Dungeon) solo dungeon-crawling tabletop RPG — powered by Deno, Hono, and an AI narrator backed by Google Gemini and RAG over the game's rulebook.
 
 Includes a Discord bot companion (`d100-bot/`) for playing directly in Discord.
 
@@ -182,7 +179,7 @@ Verify it's running:
 
 ```bash
 curl http://localhost:4200/
-# → {"message":"Welcome to D100 Dungeon API"}
+# → {"message":"Welcome to Vagrant Souls"}
 ```
 
 ---
@@ -594,7 +591,7 @@ Combat supports `table: "E" | "EA"` to select the encounter table, and `encounte
 
 ## Discord Bot
 
-The Discord bot (`d100-bot/`) provides a full Discord interface for playing D100 Dungeon.
+The Discord bot (`d100-bot/`) provides a full Discord interface for playing Vagrant Souls.
 
 ### Setup
 
@@ -694,7 +691,7 @@ The Discord bot has its own `.env` at `d100-bot/.env` — see `d100-bot/.env.exa
 
 ## Vector Store Setup
 
-The AI narrator uses RAG (Retrieval-Augmented Generation) to look up the D100 Dungeon rulebook when generating room descriptions.
+The AI narrator uses RAG (Retrieval-Augmented Generation) to look up the D100 Dungeon rulebook for rules context when generating room descriptions.
 
 ### How it Works
 
@@ -814,7 +811,7 @@ To keep the process alive with systemd:
 ```ini
 # /etc/systemd/system/d100.service
 [Unit]
-Description=D100 Dungeon API
+Description=Vagrant Souls
 After=network.target
 
 [Service]

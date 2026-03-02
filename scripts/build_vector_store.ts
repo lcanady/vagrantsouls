@@ -16,7 +16,7 @@ async function buildVectorStore() {
   
   // Ensure collection exists
   try {
-    await vectorService.createCollection(CHROMA_COLLECTION, { description: "D100 Dungeon Rules" });
+    await vectorService.createCollection(CHROMA_COLLECTION, { description: "Vagrant Souls Rules" });
     console.log(`Collection '${CHROMA_COLLECTION}' created.`);
   } catch (e) {
     console.log(`Collection '${CHROMA_COLLECTION}' might already exist or error:`, e.message);

@@ -1,5 +1,5 @@
 /**
- * WorldMapRenderService — generates SVG images for the D100 Dungeon World Builder.
+ * WorldMapRenderService — generates SVG images for the Vagrant Souls World Builder.
  *
  * Two renderers:
  *  - renderWorldMap(state)  → 800×600 SVG of the full Valoria world map

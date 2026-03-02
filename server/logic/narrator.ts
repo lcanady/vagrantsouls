@@ -17,7 +17,7 @@ const vectorService = new VectorService();
 
 const queryRulesTool = new DynamicStructuredTool({
   name: "query_rules",
-  description: "Search the D100 Dungeon rulebook for specific rules, tables, or mechanics context.",
+  description: "Search the Vagrant Souls rulebook for specific rules, tables, or mechanics context.",
   schema: z.object({
     query: z.string().describe("The search term or question to look up in the rules."),
   }),

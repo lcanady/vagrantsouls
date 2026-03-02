@@ -1,6 +1,10 @@
-# VagrantSoul Discord Bot
+<p align="center">
+  <img src="../../d100-bot/assets/logo.png" alt="Vagrant Souls" width="420">
+</p>
 
-> A Discord bot that wraps the D100 Dungeon API into an interactive slash-command + button experience.
+# Vagrant Souls Discord Bot
+
+> A Discord bot that brings Vagrant Souls to life with an interactive slash-command + button experience.
 
 ---
 
@@ -28,7 +32,7 @@
 
 ## Overview
 
-The bot provides a fully interactive Discord UI for playing D100 Dungeon. Players never need to call the API directly — all game actions are exposed as slash commands, buttons, modals, and select menus.
+The bot provides a fully interactive Discord UI for playing Vagrant Souls. Players never need to call the API directly — all game actions are exposed as slash commands, buttons, modals, and select menus.
 
 Key design decisions:
 

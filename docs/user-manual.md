@@ -1,6 +1,10 @@
-# VagrantSoul — Player's Guide
+<p align="center">
+  <img src="../d100-bot/assets/logo.png" alt="Vagrant Souls" width="420">
+</p>
 
-> A guide to playing D100 Dungeon via the VagrantSoul Discord bot.
+# Vagrant Souls — Player's Guide
+
+> A guide to playing Vagrant Souls via the Discord bot.
 
 This guide covers everything from creating your first adventurer to mastering the advanced systems of the overworld. You don't need the physical rulebooks to play — but having them makes the experience richer.
 
@@ -287,7 +291,7 @@ Click **← Continue Delving** to return to your last room and resume exploratio
 
 ## 6. Quests
 
-D100 Dungeon uses three quest types. Use `/quests` to view your log.
+Vagrant Souls uses three quest types. Use `/quests` to view your log.
 
 ### Campaign Quests (CQ1–CQ20)
 
@@ -832,4 +836,4 @@ Multiple players can explore together using the party system. In party combat:
 
 ---
 
-*VagrantSoul is a fan-made digital companion for D100 Dungeon by Martin Knight. The physical rulebooks are available at [d100dungeon.co.uk](https://www.d100dungeon.co.uk/).*
+*Vagrant Souls is a fan-made digital adaptation inspired by D100 Dungeon by Martin Knight. The physical rulebooks are available at [d100dungeon.co.uk](https://www.d100dungeon.co.uk/).*

@@ -1,6 +1,10 @@
-# VagrantSoul — D100 Dungeon API Server
+<p align="center">
+  <img src="../../d100-bot/assets/logo.png" alt="Vagrant Souls" width="420">
+</p>
 
-> A REST + WebSocket backend for playing the [D100 Dungeon](https://www.d100dungeon.co.uk/) solo/co-op tabletop RPG digitally.
+# Vagrant Souls — API Server
+
+> A REST + WebSocket backend for Vagrant Souls — a digital spin on the [D100 Dungeon](https://www.d100dungeon.co.uk/) solo/co-op tabletop RPG.
 
 ---
 
@@ -19,7 +23,7 @@
 
 ## Overview
 
-VagrantSoul exposes the full D100 Dungeon ruleset as a JSON API. Each rule book is implemented as a set of deterministic service methods — the client provides dice rolls, the server applies the rules and persists state. This makes every action reproducible, testable, and bot-friendly.
+Vagrant Souls exposes the full ruleset as a JSON API. Each rule book is implemented as a set of deterministic service methods — the client provides dice rolls, the server applies the rules and persists state. This makes every action reproducible, testable, and bot-friendly.
 
 Key design choices:
 

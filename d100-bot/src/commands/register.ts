@@ -11,7 +11,7 @@ import { createLogoAttachment, LOGO_ATTACHMENT_NAME } from '../utils/logo.ts';
 
 export const data = new SlashCommandBuilder()
   .setName('register')
-  .setDescription('Create a D100 Dungeon account and link it to your Discord profile.');
+  .setDescription('Create a Vagrant Souls account and link it to your Discord profile.');
 
 export async function execute(
   interaction: ChatInputCommandInteraction,
@@ -45,7 +45,7 @@ export async function execute(
 
     const embed = new EmbedBuilder()
       .setColor(COLORS.DEFAULT)
-      .setTitle(`${EMOJI.star} Welcome to D100 Dungeon!`)
+      .setTitle(`${EMOJI.star} Welcome to Vagrant Souls!`)
       .setDescription(
         `Your account has been created.\n\n` +
           `Run \`/create\` to build your adventurer and begin your quest!`,
@@ -61,7 +61,7 @@ export async function execute(
         embeds: [
           new EmbedBuilder()
             .setColor(COLORS.DEFAULT)
-            .setTitle(`${EMOJI.guild} Your D100 Account`)
+            .setTitle(`${EMOJI.guild} Your Vagrant Souls Account`)
             .setDescription(
               `Your account is ready!\n\n` +
                 `Head to the server and use \`/create\` to forge your adventurer.`,

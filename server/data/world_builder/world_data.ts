@@ -1,4 +1,4 @@
-// Valoria — the world of D100 Dungeon
+// Valoria — the world of Vagrant Souls
 // A JRPG-style overworld with 6 named continents.
 // Each continent corresponds to a WB hex sheet (continentId === sheetId).
 

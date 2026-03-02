@@ -4,16 +4,16 @@ import { createLogoAttachment, LOGO_ATTACHMENT_NAME } from '../utils/logo.ts';
 
 export const data = new SlashCommandBuilder()
   .setName('help')
-  .setDescription('Show available commands and how to play D100 Dungeon.');
+  .setDescription('Show available commands and how to play Vagrant Souls.');
 
 export async function execute(
   interaction: ChatInputCommandInteraction,
 ): Promise<void> {
   const embed = new EmbedBuilder()
     .setColor(COLORS.NAVY)
-    .setTitle(`${EMOJI.book} D100 Dungeon — Command Reference`)
+    .setTitle(`${EMOJI.book} Vagrant Souls — Command Reference`)
     .setDescription(
-      'Welcome to D100 Dungeon — a solo dungeon crawler played right here in Discord!',
+      'Welcome to Vagrant Souls — a solo dungeon crawler played right here in Discord!',
     )
     .addFields(
       {
@@ -54,7 +54,7 @@ export async function execute(
     )
     .setImage(`attachment://${LOGO_ATTACHMENT_NAME}`)
     .setFooter({
-      text: 'D100 Dungeon • Based on the solo tabletop RPG by Martin Knight',
+      text: 'Vagrant Souls • Inspired by D100 Dungeon, the solo tabletop RPG by Martin Knight',
     });
 
   await interaction.reply({ embeds: [embed], files: [createLogoAttachment()], ephemeral: true });
