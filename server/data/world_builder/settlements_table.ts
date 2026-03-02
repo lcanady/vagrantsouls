@@ -190,6 +190,48 @@ export const SETTLEMENT_MISC = {
   eventChance:     { camp: 35, village: 50, town: 75, city: 80 } satisfies Record<SettlementType, number>,
 } as const;
 
+// ---------------------------------------------------------------------------
+// Book 8: Curious Rules — settlement service availability
+// ---------------------------------------------------------------------------
+
+/** Unlock % for Book 8 settlement services (0 = always available, -1 = never) */
+export const BOOK8_SETTLEMENT = {
+  herbTrainer: {
+    camp:    NOT_AVAILABLE,
+    village: { unlockChance: 30, cost: 300, perItem: false },
+    town:    { unlockChance: 60, cost: 250, perItem: false },
+    city:    { unlockChance:  0, cost: 200, perItem: false },
+  } satisfies Record<SettlementType, ServiceCost>,
+
+  wizard: {
+    camp:    NOT_AVAILABLE,
+    village: NOT_AVAILABLE,
+    town:    { unlockChance: 50, cost:  50, perItem: false },
+    city:    { unlockChance:  0, cost:  50, perItem: false },
+  } satisfies Record<SettlementType, ServiceCost>,
+
+  witch: {
+    camp:    NOT_AVAILABLE,
+    village: { unlockChance: 30, cost: 200, perItem: false },
+    town:    { unlockChance: 50, cost: 200, perItem: false },
+    city:    { unlockChance:  0, cost: 200, perItem: false },
+  } satisfies Record<SettlementType, ServiceCost>,
+
+  armourer: {
+    camp:    NOT_AVAILABLE,
+    village: NOT_AVAILABLE,
+    town:    NOT_AVAILABLE,
+    city:    { unlockChance: 0, cost: 0, perItem: false },
+  } satisfies Record<SettlementType, ServiceCost>,
+
+  dualWieldTrainer: {
+    camp:    NOT_AVAILABLE,
+    village: NOT_AVAILABLE,
+    town:    { unlockChance: 40, cost: 1000, perItem: false },
+    city:    { unlockChance:  0, cost: 1000, perItem: false },
+  } satisfies Record<SettlementType, ServiceCost>,
+} as const;
+
 /** Haggling price escalation rules (WB S p.27) */
 export function hagglingCostMore(basePrice: number): number {
   const digits = Math.floor(Math.log10(Math.max(basePrice, 1))) + 1;

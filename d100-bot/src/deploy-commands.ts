@@ -5,6 +5,10 @@ import * as createCmd from './commands/create.ts';
 import * as enterCmd from './commands/enter.ts';
 import * as statusCmd from './commands/status.ts';
 import * as helpCmd from './commands/help.ts';
+import * as inventoryCmd from './commands/inventory.ts';
+import * as questsCmd from './commands/quests.ts';
+import * as worldbuilderCmd from './commands/worldbuilder.ts';
+import * as charsheetCmd from './commands/charsheet.ts';
 
 const commands = [
   registerCmd.data,
@@ -12,6 +16,10 @@ const commands = [
   enterCmd.data,
   statusCmd.data,
   helpCmd.data,
+  inventoryCmd.data,
+  questsCmd.data,
+  worldbuilderCmd.data,
+  charsheetCmd.data,
 ].map((c) => c.toJSON());
 
 const token = Deno.env.get('DISCORD_TOKEN');

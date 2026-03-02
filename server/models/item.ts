@@ -27,5 +27,9 @@ export const ItemSchema = z.object({
   value: z.number().int().min(0).default(0),
   fix: z.number().int().min(0).default(0),
   damagePips: z.number().int().min(0).max(5).default(0),
+  // Book 8 extensions
+  def: z.number().int().optional(),            // defense value for armour/shields
+  rv: z.number().int().min(0).optional(),      // resilience value (reinforced belts)
+  spiked: z.boolean().optional(),              // spiked shield flag
 });
 export type Item = z.infer<typeof ItemSchema>;

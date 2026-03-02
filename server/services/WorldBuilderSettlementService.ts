@@ -24,6 +24,7 @@ import {
   SettlementType,
   SETTLEMENT_COSTS,
   SETTLEMENT_MISC,
+  BOOK8_SETTLEMENT,
   hagglingCostMore,
   NOT_AVAILABLE,
 } from "../data/world_builder/settlements_table.ts";
@@ -637,6 +638,81 @@ export class WorldBuilderSettlementService {
     }
     const higherPrice = hagglingCostMore(basePrice);
     return { success: false, finalPrice: higherPrice, message: `Haggle failed — price increased to ${higherPrice}gp` };
+  }
+
+  // ---- Book 8: Curious Rules — settlement service checks ---------------------
+
+  /** Check herb trainer availability (Book 8). Returns cost if available. */
+  checkHerbTrainer(
+    _adv: Adventurer,
+    _state: WorldBuilderState,
+    settlementType: SettlementType,
+    unlockRoll: number,
+  ): { available: boolean; cost: number; message: string } {
+    const entry = BOOK8_SETTLEMENT.herbTrainer[settlementType];
+    if (entry.unlockChance === -1) return { available: false, cost: 0, message: "No herb trainer in this settlement." };
+    if (entry.unlockChance > 0 && unlockRoll > entry.unlockChance) {
+      return { available: false, cost: 0, message: `No herb trainer found (${unlockRoll} > ${entry.unlockChance}%).` };
+    }
+    return { available: true, cost: entry.cost, message: `Herb trainer available. Recipe costs ${entry.cost}g.` };
+  }
+
+  /** Check identify wizard availability (Book 8). */
+  checkWizard(
+    _adv: Adventurer,
+    _state: WorldBuilderState,
+    settlementType: SettlementType,
+    unlockRoll: number,
+  ): { available: boolean; cost: number; message: string } {
+    const entry = BOOK8_SETTLEMENT.wizard[settlementType];
+    if (entry.unlockChance === -1) return { available: false, cost: 0, message: "No wizard in this settlement." };
+    if (entry.unlockChance > 0 && unlockRoll > entry.unlockChance) {
+      return { available: false, cost: 0, message: `No wizard found (${unlockRoll} > ${entry.unlockChance}%).` };
+    }
+    return { available: true, cost: entry.cost, message: `Wizard available. Identify costs ${entry.cost}g per item.` };
+  }
+
+  /** Check remove-curse witch availability (Book 8). */
+  checkWitch(
+    _adv: Adventurer,
+    _state: WorldBuilderState,
+    settlementType: SettlementType,
+    unlockRoll: number,
+  ): { available: boolean; cost: number; message: string } {
+    const entry = BOOK8_SETTLEMENT.witch[settlementType];
+    if (entry.unlockChance === -1) return { available: false, cost: 0, message: "No witch in this settlement." };
+    if (entry.unlockChance > 0 && unlockRoll > entry.unlockChance) {
+      return { available: false, cost: 0, message: `No witch found (${unlockRoll} > ${entry.unlockChance}%).` };
+    }
+    return { available: true, cost: entry.cost, message: `Witch available. Curse removal costs ${entry.cost}g.` };
+  }
+
+  /** Check armourer availability — reinforce belts / spike shields (■ city only). */
+  checkArmourer(
+    _adv: Adventurer,
+    _state: WorldBuilderState,
+    settlementType: SettlementType,
+  ): { available: boolean; message: string } {
+    const entry = BOOK8_SETTLEMENT.armourer[settlementType];
+    if (entry.unlockChance === -1) {
+      return { available: false, message: "Armourer only available in a ■ City." };
+    }
+    return { available: true, message: "City armourer available — can reinforce belts and spike shields." };
+  }
+
+  /** Check dual wield trainer availability (Book 8). */
+  checkDualWieldTrainer(
+    _adv: Adventurer,
+    _state: WorldBuilderState,
+    settlementType: SettlementType,
+    unlockRoll: number,
+  ): { available: boolean; cost: number; message: string } {
+    const entry = BOOK8_SETTLEMENT.dualWieldTrainer[settlementType];
+    if (entry.unlockChance === -1) return { available: false, cost: 0, message: "No dual wield trainer in this settlement." };
+    if (entry.unlockChance > 0 && unlockRoll > entry.unlockChance) {
+      return { available: false, cost: 0, message: `No dual wield trainer found (${unlockRoll} > ${entry.unlockChance}%).` };
+    }
+    return { available: true, cost: entry.cost, message: `Dual wield trainer available. Training costs ${entry.cost}g.` };
   }
 
   // ---- Private helpers -----------------------------------------------------

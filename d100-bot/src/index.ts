@@ -14,6 +14,10 @@ import * as createCmd from './commands/create.ts';
 import * as enterCmd from './commands/enter.ts';
 import * as statusCmd from './commands/status.ts';
 import * as helpCmd from './commands/help.ts';
+import * as inventoryCmd from './commands/inventory.ts';
+import * as questsCmd from './commands/quests.ts';
+import * as worldbuilderCmd from './commands/worldbuilder.ts';
+import * as charsheetCmd from './commands/charsheet.ts';
 
 // Chargen interactions
 import * as step1Modal from './interactions/chargen/step1-modal.ts';
@@ -112,6 +116,18 @@ client.on('interactionCreate', async (interaction: Interaction) => {
           break;
         case 'help':
           await helpCmd.execute(i);
+          break;
+        case 'inventory':
+          await inventoryCmd.execute(i);
+          break;
+        case 'quests':
+          await questsCmd.execute(i);
+          break;
+        case 'worldbuilder':
+          await worldbuilderCmd.execute(i);
+          break;
+        case 'charsheet':
+          await charsheetCmd.execute(i);
           break;
         default:
           await i.reply({ content: 'Unknown command.', ephemeral: true });

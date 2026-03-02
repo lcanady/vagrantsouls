@@ -40,9 +40,13 @@ export async function execute(
         ].join('\n'),
       },
       {
-        name: `${EMOJI.stats} Other Commands`,
+        name: `${EMOJI.stats} Character Commands`,
         value: [
-          `\`/status\` — View your current adventurer stats`,
+          `\`/status\` — Quick vitals overview`,
+          `\`/charsheet\` — Full character sheet (stats, skills, spells, beast, artisan)`,
+          `\`/inventory\` — Equipped items and backpack contents`,
+          `\`/quests\` — World Builder quest log`,
+          `\`/worldbuilder\` — World Builder HUD (hex, calendar, mounts)`,
           `\`/help\` — Show this reference`,
         ].join('\n'),
       },

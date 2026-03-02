@@ -20,8 +20,15 @@
 import { Adventurer, WorldBuilderState, HexData } from "../models/adventurer.ts";
 import { WorldBuilderCalendarService, MarkDayRolls } from "./WorldBuilderCalendarService.ts";
 import { getTerrainByType } from "../data/world_builder/terrain_table.ts";
+import { WorldBuilderHerbalismService } from "./WorldBuilderHerbalismService.ts";
+import { WorldBuilderMiningService } from "./WorldBuilderMiningService.ts";
+import { WorldBuilderSkinningService } from "./WorldBuilderSkinningService.ts";
+import type { TerrainType } from "../data/curious_rules/herbalism_table.ts";
 
 const calendarService = new WorldBuilderCalendarService();
+const herbalismService = new WorldBuilderHerbalismService();
+const miningService = new WorldBuilderMiningService();
+const skinningService = new WorldBuilderSkinningService();
 
 // ---------------------------------------------------------------------------
 // Shared types
@@ -557,6 +564,157 @@ export class WorldBuilderActionService {
         message: `Camp (▲) made at ${hex.name}. You may now use camp settlement actions here.`,
         apSpent: 2,
         pendingEvents,
+      },
+    };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Book 8: Curious Rules — new World Builder actions
+  // ---------------------------------------------------------------------------
+
+  /**
+   * HERBALISM ACTION (1 AP, up to ×3 per hex)
+   * Collect herbs from the current hex terrain.
+   *
+   * @param testRoll      d100 herb collecting test
+   * @param d3Roll        1-3 quantity roll
+   * @param herbIndexRolls  d10 rolls (one per herb) for which herb on terrain table
+   * @param rollsPerDay   Calendar day rolls
+   */
+  herbalismAction(
+    adventurer: Adventurer,
+    state: WorldBuilderState,
+    testRoll: number,
+    d3Roll: number,
+    herbIndexRolls: number[],
+    rollsPerDay: [MarkDayRolls],
+  ): { adventurer: Adventurer; state: WorldBuilderState; result: ActionResult } {
+    const hex = currentHex(state);
+    if (!hex) throw new Error("No current hex data");
+
+    const terrain = hex.terrain.toLowerCase() as TerrainType;
+    const seasonBonus = calendarService.getSeasonBonus(state.calendar.month);
+
+    const { adventurer: a1, result: herbResult } = herbalismService.collectHerbs(
+      adventurer,
+      state,
+      terrain,
+      testRoll,
+      d3Roll,
+      seasonBonus,
+      herbIndexRolls,
+    );
+
+    const { adventurer: a2, state: s2, pendingEvents } = spendDays(a1, state, 1, rollsPerDay);
+
+    return {
+      adventurer: a2,
+      state: s2,
+      result: {
+        success: herbResult.success,
+        message: herbResult.message,
+        apSpent: 1,
+        pendingEvents,
+        data: { herbsCollected: herbResult.herbsCollected ?? [] },
+      },
+    };
+  }
+
+  /**
+   * MINING ACTION (1 AP, up to ×3 per hex)
+   * Mine for raw materials. Requires Mine to be found first (findMine).
+   *
+   * @param testRoll      d100 mining test
+   * @param d3Roll        1-3 quantity roll
+   * @param materialRolls d10 rolls for material selection
+   * @param failD6Roll    d6 rolled on failure (5-6 = pick damaged)
+   * @param rollsPerDay   Calendar day rolls
+   */
+  miningAction(
+    adventurer: Adventurer,
+    state: WorldBuilderState,
+    testRoll: number,
+    d3Roll: number,
+    materialRolls: number[],
+    failD6Roll: number,
+    rollsPerDay: [MarkDayRolls],
+  ): { adventurer: Adventurer; state: WorldBuilderState; result: ActionResult } {
+    const hex = currentHex(state);
+    if (!hex) throw new Error("No current hex data");
+
+    const terrain = hex.terrain.toLowerCase() as TerrainType;
+
+    const { adventurer: a1, result: mineResult } = miningService.mine(
+      adventurer,
+      state,
+      terrain,
+      testRoll,
+      d3Roll,
+      materialRolls,
+      failD6Roll,
+    );
+
+    const { adventurer: a2, state: s2, pendingEvents } = spendDays(a1, state, 1, rollsPerDay);
+
+    return {
+      adventurer: a2,
+      state: s2,
+      result: {
+        success: mineResult.success,
+        message: mineResult.message,
+        apSpent: 1,
+        pendingEvents,
+        data: {
+          materialsCollected: mineResult.materialsCollected ?? [],
+          pickDamaged: mineResult.pickDamaged ?? false,
+        },
+      },
+    };
+  }
+
+  /**
+   * SALVAGE ACTION (1 AP, once per hunt)
+   * Skin a slain creature after a successful HUNTING action.
+   *
+   * @param testRoll   d100 salvaging test
+   * @param d3Roll     1-3 quantity roll
+   * @param matRolls   d2 rolls for material type (1=Bone Splinters, 2=Leather Scraps)
+   * @param failD6Roll d6 rolled on failure (5-6 = blade damaged)
+   * @param rollsPerDay Calendar day rolls
+   */
+  salvageAction(
+    adventurer: Adventurer,
+    state: WorldBuilderState,
+    testRoll: number,
+    d3Roll: number,
+    matRolls: number[],
+    failD6Roll: number,
+    rollsPerDay: [MarkDayRolls],
+  ): { adventurer: Adventurer; state: WorldBuilderState; result: ActionResult } {
+    const { adventurer: a1, result: salvageResult } = skinningService.salvage(
+      adventurer,
+      state,
+      testRoll,
+      d3Roll,
+      matRolls,
+      failD6Roll,
+      true, // afterHunt = true (caller responsible for gating)
+    );
+
+    const { adventurer: a2, state: s2, pendingEvents } = spendDays(a1, state, 1, rollsPerDay);
+
+    return {
+      adventurer: a2,
+      state: s2,
+      result: {
+        success: salvageResult.success,
+        message: salvageResult.message,
+        apSpent: 1,
+        pendingEvents,
+        data: {
+          materialsCollected: salvageResult.materialsCollected ?? [],
+          bladeDamaged: salvageResult.bladeDamaged ?? false,
+        },
       },
     };
   }

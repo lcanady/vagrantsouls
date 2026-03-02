@@ -221,6 +221,47 @@ export type WBMount = z.infer<typeof WBMountSchema>;
 export type CircledDate = z.infer<typeof CircledDateSchema>;
 
 // ============================================================
+// Book 8 (Curious Rules) Schemas
+// ============================================================
+
+/** Butchery Roll + experience pips */
+const ButcherySchema = z.object({
+  br: z.number().int().min(1).default(1),   // Butchery Roll (starts at 1, increments per 10 pips)
+  pips: z.number().int().min(0).max(10).default(0),
+});
+
+/** Spell Mana pool */
+const SpellManaSchema = z.object({
+  primary: z.number().int().min(0).default(0),   // base from class/path
+  adjusted: z.number().int().default(0),         // modifier from equipment/effects
+  total: z.number().int().min(0).default(0),     // primary + adjusted
+  current: z.number().int().min(0).default(0),   // remaining mana this quest
+  magicPower: z.boolean().default(false),        // Magic Power mode: spell fail = -1d3 HP instead of Table C
+});
+
+/** Ammunition holders */
+const AmmunitionSchema = z.object({
+  pouch: z.object({
+    smoothStones: z.number().int().min(0).default(0),
+    leadShot: z.number().int().min(0).default(0),
+  }).optional(),
+  quiver: z.object({
+    bodkinArrows: z.number().int().min(0).default(0),
+    broadheadArrows: z.number().int().min(0).default(0),
+  }).optional(),
+  bandolier: z.object({
+    crossbowBolts: z.number().int().min(0).default(0),
+    heavyQuarrels: z.number().int().min(0).default(0),
+  }).optional(),
+});
+
+/** One herb bag (herbalism) */
+const HerbBagSchema = z.object({
+  label: z.string(),
+  herbs: z.record(z.string(), z.number().int().min(0)).default({}),
+});
+
+// ============================================================
 // Adventurer Schema
 // ============================================================
 
@@ -349,6 +390,21 @@ export const AdventurerSchema = z.object({
 
   // --- World Builder (Book 6) ---
   worldBuilder: WorldBuilderStateSchema.nullable().optional(),
+
+  // --- Book 8: Curious Rules ---
+  butchery: ButcherySchema.nullable().optional(),
+  dualWield: z.boolean().nullable().optional(),
+  weaponProficiency: z.record(z.string(), z.number().int().min(0)).nullable().optional(),
+  cheatDeath: z.enum(["active"]).nullable().optional(),
+  spellMana: SpellManaSchema.nullable().optional(),
+  ammunition: AmmunitionSchema.nullable().optional(),
+  herbBags: z.array(HerbBagSchema).nullable().optional(),
+  artisanSheet: z.record(z.string(), z.number().int().min(0)).nullable().optional(), // mining/herbalism materials
+  accolades: z.record(z.string(), z.boolean()).nullable().optional(),
+  honourPoints: z.number().int().min(0).nullable().optional(),
+  heroicItemTracker: z.object({ pips: z.number().int().min(0) }).nullable().optional(),
+  yellowEventTracker: z.object({ pips: z.number().int().min(0) }).nullable().optional(),
+  weaponProficiencyTracker: z.record(z.string(), z.number().int().min(0)).nullable().optional(),
 });
 
 export type Adventurer = z.infer<typeof AdventurerSchema>;

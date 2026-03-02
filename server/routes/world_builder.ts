@@ -84,6 +84,10 @@ import { WorldBuilderSettlementService } from "../services/WorldBuilderSettlemen
 import { WorldBuilderMountService } from "../services/WorldBuilderMountService.ts";
 import { WorldBuilderEventService } from "../services/WorldBuilderEventService.ts";
 import { renderWorldMap, renderHexSheet } from "../services/WorldMapRenderService.ts";
+import { WorldBuilderHerbalismService } from "../services/WorldBuilderHerbalismService.ts";
+import { WorldBuilderMiningService } from "../services/WorldBuilderMiningService.ts";
+import { WorldBuilderSkinningService } from "../services/WorldBuilderSkinningService.ts";
+import type { TerrainType } from "../data/curious_rules/herbalism_table.ts";
 
 const worldBuilderRoutes = new Hono<{
   Variables: { repository: Repository; gameState: GameState; adventurerId: string };
@@ -99,6 +103,9 @@ const questSvc = new WorldBuilderQuestService();
 const settlementSvc = new WorldBuilderSettlementService();
 const mountSvc = new WorldBuilderMountService();
 const eventSvc = new WorldBuilderEventService();
+const herbalismSvc = new WorldBuilderHerbalismService();
+const miningSvc = new WorldBuilderMiningService();
+const skinningSvc = new WorldBuilderSkinningService();
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -329,6 +336,56 @@ worldBuilderRoutes.post("/action/make-camp", async (c: Context) => {
   return saveAndReturn(c, { ...adventurer, worldBuilder: newState }, { result });
 });
 
+worldBuilderRoutes.post("/action/herbalism", async (c: Context) => {
+  const gs = c.get("gameState") as GameState;
+  const state = getWBState(gs.adventurer);
+  const body = await c.req.json();
+  const { testRoll, d3Roll, herbIndexRolls, rollsPerDay } = z.object({
+    testRoll: z.number().int().min(1).max(100),
+    d3Roll: z.number().int().min(1).max(3),
+    herbIndexRolls: z.array(z.number().int()),
+    rollsPerDay: z.array(z.record(z.unknown())).optional(),
+  }).parse(body);
+  const { adventurer, state: newState, result } = actionSvc.herbalismAction(
+    gs.adventurer, state, testRoll, d3Roll, herbIndexRolls, rollsPerDay as [object] ?? [{}],
+  );
+  return saveAndReturn(c, { ...adventurer, worldBuilder: newState }, { result });
+});
+
+worldBuilderRoutes.post("/action/mining", async (c: Context) => {
+  const gs = c.get("gameState") as GameState;
+  const state = getWBState(gs.adventurer);
+  const body = await c.req.json();
+  const { testRoll, d3Roll, materialRolls, failD6Roll, rollsPerDay } = z.object({
+    testRoll: z.number().int().min(1).max(100),
+    d3Roll: z.number().int().min(1).max(3),
+    materialRolls: z.array(z.number().int()),
+    failD6Roll: z.number().int().min(1).max(6).optional(),
+    rollsPerDay: z.array(z.record(z.unknown())).optional(),
+  }).parse(body);
+  const { adventurer, state: newState, result } = actionSvc.miningAction(
+    gs.adventurer, state, testRoll, d3Roll, materialRolls, failD6Roll ?? 1, rollsPerDay as [object] ?? [{}],
+  );
+  return saveAndReturn(c, { ...adventurer, worldBuilder: newState }, { result });
+});
+
+worldBuilderRoutes.post("/action/salvage", async (c: Context) => {
+  const gs = c.get("gameState") as GameState;
+  const state = getWBState(gs.adventurer);
+  const body = await c.req.json();
+  const { testRoll, d3Roll, matRolls, failD6Roll, rollsPerDay } = z.object({
+    testRoll: z.number().int().min(1).max(100),
+    d3Roll: z.number().int().min(1).max(3),
+    matRolls: z.array(z.number().int()),
+    failD6Roll: z.number().int().min(1).max(6).optional(),
+    rollsPerDay: z.array(z.record(z.unknown())).optional(),
+  }).parse(body);
+  const { adventurer, state: newState, result } = actionSvc.salvageAction(
+    gs.adventurer, state, testRoll, d3Roll, matRolls, failD6Roll ?? 1, rollsPerDay as [object] ?? [{}],
+  );
+  return saveAndReturn(c, { ...adventurer, worldBuilder: newState }, { result });
+});
+
 // ---------------------------------------------------------------------------
 // Quests
 // ---------------------------------------------------------------------------
@@ -356,6 +413,21 @@ worldBuilderRoutes.post("/quests/generate-side", async (c: Context) => {
   const { d10Roll, monsterName } = z.object({ d10Roll: z.number().int().min(1).max(10), monsterName: z.string() }).parse(body);
   const sideQuest = questSvc.generateSideQuest(gs.adventurer, state, { d10Roll, monsterName });
   return c.json({ sideQuest });
+});
+
+worldBuilderRoutes.post("/quests/generate-qe", async (c: Context) => {
+  const gs = c.get("gameState") as GameState;
+  const state = getWBState(gs.adventurer);
+  const body = await c.req.json();
+  const { d100Roll, dirRoll, distRoll } = z.object({
+    d100Roll: z.number().int().min(1).max(100),
+    dirRoll: z.number().int().min(1).max(6),
+    distRoll: z.number().int().min(1).max(6),
+  }).parse(body);
+  const { adventurer, state: newState, quest, questEntry } = questSvc.generateQuestE(
+    gs.adventurer, state, d100Roll, dirRoll, distRoll,
+  );
+  return saveAndReturn(c, { ...adventurer, worldBuilder: newState }, { quest, questEntry });
 });
 
 worldBuilderRoutes.post("/quests/:code/complete", async (c: Context) => {
@@ -692,6 +764,167 @@ worldBuilderRoutes.post("/settlement/event", async (c: Context) => {
   }).parse(body);
   const result = settlementSvc.checkEvent(gs.adventurer, state, settlementType, d100Roll);
   return c.json({ result });
+});
+
+worldBuilderRoutes.post("/settlement/herb-trainer", async (c: Context) => {
+  const gs = c.get("gameState") as GameState;
+  const state = getWBState(gs.adventurer);
+  const body = await c.req.json();
+  const { settlementType, unlockRoll } = z.object({
+    settlementType: z.enum(["camp", "village", "town", "city"]),
+    unlockRoll: z.number().int().min(1).max(100),
+  }).parse(body);
+  const result = settlementSvc.checkHerbTrainer(gs.adventurer, state, settlementType, unlockRoll);
+  return c.json({ result });
+});
+
+worldBuilderRoutes.post("/settlement/wizard", async (c: Context) => {
+  const gs = c.get("gameState") as GameState;
+  const state = getWBState(gs.adventurer);
+  const body = await c.req.json();
+  const { settlementType, unlockRoll } = z.object({
+    settlementType: z.enum(["camp", "village", "town", "city"]),
+    unlockRoll: z.number().int().min(1).max(100),
+  }).parse(body);
+  const result = settlementSvc.checkWizard(gs.adventurer, state, settlementType, unlockRoll);
+  return c.json({ result });
+});
+
+worldBuilderRoutes.post("/settlement/witch", async (c: Context) => {
+  const gs = c.get("gameState") as GameState;
+  const state = getWBState(gs.adventurer);
+  const body = await c.req.json();
+  const { settlementType, unlockRoll } = z.object({
+    settlementType: z.enum(["camp", "village", "town", "city"]),
+    unlockRoll: z.number().int().min(1).max(100),
+  }).parse(body);
+  const result = settlementSvc.checkWitch(gs.adventurer, state, settlementType, unlockRoll);
+  return c.json({ result });
+});
+
+worldBuilderRoutes.post("/settlement/armourer", async (c: Context) => {
+  const gs = c.get("gameState") as GameState;
+  const state = getWBState(gs.adventurer);
+  const body = await c.req.json();
+  const { settlementType } = z.object({
+    settlementType: z.enum(["camp", "village", "town", "city"]),
+  }).parse(body);
+  const result = settlementSvc.checkArmourer(gs.adventurer, state, settlementType);
+  return c.json({ result });
+});
+
+worldBuilderRoutes.post("/settlement/dual-wield-trainer", async (c: Context) => {
+  const gs = c.get("gameState") as GameState;
+  const state = getWBState(gs.adventurer);
+  const body = await c.req.json();
+  const { settlementType, unlockRoll } = z.object({
+    settlementType: z.enum(["camp", "village", "town", "city"]),
+    unlockRoll: z.number().int().min(1).max(100),
+  }).parse(body);
+  const result = settlementSvc.checkDualWieldTrainer(gs.adventurer, state, settlementType, unlockRoll);
+  return c.json({ result });
+});
+
+// ---------------------------------------------------------------------------
+// Herbalism (Book 8)
+// ---------------------------------------------------------------------------
+
+const TERRAIN_ENUM = z.enum(["deserts", "forests", "grasslands", "hills", "jungles", "marshlands", "mountains", "seas", "swamps", "tundras"]);
+
+worldBuilderRoutes.post("/herbalism/collect", async (c: Context) => {
+  const gs = c.get("gameState") as GameState;
+  const state = getWBState(gs.adventurer);
+  const body = await c.req.json();
+  const { terrain, testRoll, d3Roll, seasonBonus, herbIndexRolls } = z.object({
+    terrain: TERRAIN_ENUM,
+    testRoll: z.number().int().min(1).max(100),
+    d3Roll: z.number().int().min(1).max(3),
+    seasonBonus: z.number().int().optional(),
+    herbIndexRolls: z.array(z.number().int()),
+  }).parse(body);
+  const { adventurer, result } = herbalismSvc.collectHerbs(
+    gs.adventurer, state, terrain as TerrainType, testRoll, d3Roll, seasonBonus ?? 0, herbIndexRolls,
+  );
+  return saveAndReturn(c, { ...adventurer, worldBuilder: state }, { result });
+});
+
+worldBuilderRoutes.post("/herbalism/learn/:recipe", async (c: Context) => {
+  const gs = c.get("gameState") as GameState;
+  const state = getWBState(gs.adventurer);
+  const recipeName = c.req.param("recipe");
+  const body = await c.req.json();
+  const { settlementType, unlockRoll } = z.object({
+    settlementType: z.enum(["camp", "village", "town", "city"]),
+    unlockRoll: z.number().int().min(1).max(100),
+  }).parse(body);
+  const { adventurer, result } = herbalismSvc.learnRecipe(gs.adventurer, state, settlementType, recipeName, unlockRoll);
+  return saveAndReturn(c, { ...adventurer, worldBuilder: state }, { result });
+});
+
+worldBuilderRoutes.post("/herbalism/make/:recipe", async (c: Context) => {
+  const gs = c.get("gameState") as GameState;
+  const state = getWBState(gs.adventurer);
+  const recipeName = c.req.param("recipe");
+  const body = await c.req.json();
+  const { testRoll } = z.object({
+    testRoll: z.number().int().min(1).max(100),
+  }).parse(body);
+  const { adventurer, result } = herbalismSvc.makeItem(gs.adventurer, state, recipeName, testRoll);
+  return saveAndReturn(c, { ...adventurer, worldBuilder: state }, { result });
+});
+
+// ---------------------------------------------------------------------------
+// Mining (Book 8)
+// ---------------------------------------------------------------------------
+
+worldBuilderRoutes.post("/mining/find", async (c: Context) => {
+  const gs = c.get("gameState") as GameState;
+  const state = getWBState(gs.adventurer);
+  const body = await c.req.json();
+  const { terrain, testRoll } = z.object({
+    terrain: TERRAIN_ENUM,
+    testRoll: z.number().int().min(1).max(100),
+  }).parse(body);
+  const { adventurer, result } = miningSvc.findMine(gs.adventurer, state, terrain as TerrainType, testRoll);
+  return saveAndReturn(c, { ...adventurer, worldBuilder: state }, { result });
+});
+
+worldBuilderRoutes.post("/mining/mine", async (c: Context) => {
+  const gs = c.get("gameState") as GameState;
+  const state = getWBState(gs.adventurer);
+  const body = await c.req.json();
+  const { terrain, testRoll, d3Roll, materialRolls, failD6Roll } = z.object({
+    terrain: TERRAIN_ENUM,
+    testRoll: z.number().int().min(1).max(100),
+    d3Roll: z.number().int().min(1).max(3),
+    materialRolls: z.array(z.number().int()),
+    failD6Roll: z.number().int().min(1).max(6).optional(),
+  }).parse(body);
+  const { adventurer, result } = miningSvc.mine(
+    gs.adventurer, state, terrain as TerrainType, testRoll, d3Roll, materialRolls, failD6Roll ?? 1,
+  );
+  return saveAndReturn(c, { ...adventurer, worldBuilder: state }, { result });
+});
+
+// ---------------------------------------------------------------------------
+// Skinning (Book 8)
+// ---------------------------------------------------------------------------
+
+worldBuilderRoutes.post("/skinning/salvage", async (c: Context) => {
+  const gs = c.get("gameState") as GameState;
+  const state = getWBState(gs.adventurer);
+  const body = await c.req.json();
+  const { testRoll, d3Roll, matRolls, failD6Roll, afterHunt } = z.object({
+    testRoll: z.number().int().min(1).max(100),
+    d3Roll: z.number().int().min(1).max(3),
+    matRolls: z.array(z.number().int()),
+    failD6Roll: z.number().int().min(1).max(6).optional(),
+    afterHunt: z.boolean().optional(),
+  }).parse(body);
+  const { adventurer, result } = skinningSvc.salvage(
+    gs.adventurer, state, testRoll, d3Roll, matRolls, failD6Roll ?? 1, afterHunt ?? false,
+  );
+  return saveAndReturn(c, { ...adventurer, worldBuilder: state }, { result });
 });
 
 // ---------------------------------------------------------------------------

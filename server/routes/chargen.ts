@@ -5,6 +5,7 @@ import { Book1TableService } from "../services/table_service.ts";
 import { GameState } from "../models/gamestate.ts";
 import { Repository } from "../repository.ts";
 import { User } from "../models/user.ts";
+import { RACE_B_TABLE } from "../data/curious_rules/race_b_table.ts";
 
 const chargenRoutes = new Hono<{ Variables: { repository: Repository, user?: User } }>();
 const tableService = new Book1TableService();
@@ -33,13 +34,29 @@ const RACES: Record<string, { strMod: number; dexMod: number; intMod: number; sk
   Dwarf:         { strMod: +5,  dexMod:  0,  intMod: -5,  skills: { Strong: 5 } },
   Elf:           { strMod: -5,  dexMod: +5,  intMod:  0,  skills: { Dodge: 5 } },
   Human:         { strMod:  0,  dexMod: -5,  intMod: +5,  skills: { Aware: 5 } },
-  // Extended races
+  // Extended races (Book 2)
   Halfling:      { strMod: -10, dexMod: +10, intMod:  0,  skills: { Agility: 5 } },
   "Half Elf":    { strMod: -5,  dexMod: -5,  intMod: +10, skills: { Escape: 5 } },
   "Half Giant":  { strMod: +10, dexMod:  0,  intMod: -10, skills: { Bravery: 5 } },
   "High Elf":    { strMod: -10, dexMod: +5,  intMod: +5,  skills: { Magic: 5 } },
   "Mountain Dwarf": { strMod: +10, dexMod: -5, intMod: -5, skills: { Traps: 5 } },
 };
+
+// Book 8 races — registered from RB table at module load
+for (const rb of RACE_B_TABLE) {
+  RACES[rb.name] = {
+    strMod: rb.primaryMods.str,
+    dexMod: rb.primaryMods.dex,
+    intMod: rb.primaryMods.int,
+    skills: Object.fromEntries(rb.skillBonuses.map((s) => [s.skill, s.bonus])),
+  };
+}
+
+// Valid stat assignment sets: standard 50/40/30 + Book 8 race assignments
+const VALID_STAT_SETS: number[][] = [
+  [50, 40, 30], // standard
+  ...RACE_B_TABLE.map((rb) => [...rb.statAssignment].sort((a, b) => b - a)),
+];
 
 function applyPathToAdventurer(adv: Adventurer, path: string): Adventurer {
   const def = PATHS[path];
@@ -76,8 +93,13 @@ chargenRoutes.post("/create", async (c: Context) => {
   const { name, str, dex, int: intStat } = await c.req.json();
 
   const stats = [str, dex, intStat].sort((a: number, b: number) => b - a);
-  if (JSON.stringify(stats) !== JSON.stringify([50, 40, 30])) {
-    return c.json({ error: "Stats must be a permutation of 50, 40, and 30." }, 400);
+  const validSet = VALID_STAT_SETS.find(
+    (set) => stats[0] === set[0] && stats[1] === set[1] && stats[2] === set[2],
+  );
+  if (!validSet) {
+    return c.json({
+      error: "Stats must be a permutation of 50/40/30 (standard) or a Book 8 race assignment: 50/35/25 (Gnome), 60/30/20 (Dragon Scar), 45/35/30 (Half Orc), or 40/30/30 (Wood Elf).",
+    }, 400);
   }
 
   const id = crypto.randomUUID();
@@ -196,11 +218,13 @@ chargenRoutes.post("/finalize", async (c: Context) => {
 
   const adv = { ...gameState.adventurer };
 
-  adv.hp = 20;
-  adv.maxHp = 20;
-  adv.reputation = 1;
-  adv.fate = 3;
-  adv.life = 3;
+  // Look up Book 8 race-specific starting values
+  const rbRace = RACE_B_TABLE.find((r) => r.name === adv.race);
+  adv.hp = rbRace?.startingHp || 20;
+  adv.maxHp = adv.hp;
+  adv.reputation = 1 + (rbRace?.startingRep ?? 0);
+  adv.fate = 3 + (rbRace?.extraFate ?? 0);
+  adv.life = 3 + (rbRace?.startingLifePoints ?? 0);
   adv.oil = 20;
   adv.food = 10;
   adv.picks = 15;
@@ -413,7 +437,22 @@ chargenRoutes.get("/list", async (c: Context) => {
 chargenRoutes.get("/options", (_c: Context) => {
   return _c.json({
     paths: Object.entries(PATHS).map(([name, def]) => ({ name, ...def })),
-    races: Object.entries(RACES).map(([name, def]) => ({ name, ...def })),
+    races: Object.entries(RACES).map(([name, def]) => {
+      const rbEntry = RACE_B_TABLE.find((r) => r.name === name);
+      return {
+        name,
+        ...def,
+        ...(rbEntry ? {
+          statAssignment: rbEntry.statAssignment,
+          extraFate: rbEntry.extraFate,
+          startingHp: rbEntry.startingHp || 20,
+          startingLifePoints: rbEntry.startingLifePoints ? 3 + rbEntry.startingLifePoints : 3,
+          startingRep: 1 + rbEntry.startingRep,
+          description: rbEntry.description,
+          book: 8,
+        } : {}),
+      };
+    }),
   });
 });
 

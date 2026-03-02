@@ -42,6 +42,25 @@ import { BeastService } from "../services/BeastService.ts";
 import { ArcanistService } from "../services/ArcanistService.ts";
 import { ArtisanService } from "../services/ArtisanService.ts";
 import { CombatExperienceService } from "../services/CombatExperienceService.ts";
+// Book 8 services
+import { ButcheryService } from "../services/ButcheryService.ts";
+import { DualWieldService } from "../services/DualWieldService.ts";
+import { WeaponProficiencyService } from "../services/WeaponProficiencyService.ts";
+import { CheatDeathService } from "../services/CheatDeathService.ts";
+import { PursuitService } from "../services/PursuitService.ts";
+import { SecretPassagewayService } from "../services/SecretPassagewayService.ts";
+import { MonsterVariantService } from "../services/MonsterVariantService.ts";
+import { HonourPointsService } from "../services/HonourPointsService.ts";
+import { AccoladeService } from "../services/AccoladeService.ts";
+import { HeroicItemService } from "../services/HeroicItemService.ts";
+import { EpicDungeonService } from "../services/EpicDungeonService.ts";
+import { IdentifyService } from "../services/IdentifyService.ts";
+import { YellowEventService } from "../services/YellowEventService.ts";
+import { AmmunitionService } from "../services/AmmunitionService.ts";
+import { ThrowService } from "../services/ThrowService.ts";
+import { AimedAttackService, type AimLocation } from "../services/AimedAttackService.ts";
+import { EquipmentModService } from "../services/EquipmentModService.ts";
+import { SpellManaService } from "../services/SpellManaService.ts";
 
 const extraRulesRoutes = new Hono<{
   Variables: { repository: Repository; gameState: GameState; adventurerId: string };
@@ -53,6 +72,25 @@ const beastSvc = new BeastService();
 const arcanistSvc = new ArcanistService();
 const artisanSvc = new ArtisanService();
 const combatXpSvc = new CombatExperienceService();
+// Book 8
+const butcherySvc = new ButcheryService();
+const dualWieldSvc = new DualWieldService();
+const weaponProfSvc = new WeaponProficiencyService();
+const cheatDeathSvc = new CheatDeathService();
+const pursuitSvc = new PursuitService();
+const secretPassageSvc = new SecretPassagewayService();
+const monsterVariantSvc = new MonsterVariantService();
+const honourSvc = new HonourPointsService();
+const accoladeSvc = new AccoladeService();
+const heroicItemSvc = new HeroicItemService();
+const epicDungeonSvc = new EpicDungeonService();
+const identifySvc = new IdentifyService();
+const yellowEventSvc = new YellowEventService();
+const ammoSvc = new AmmunitionService();
+const throwSvc = new ThrowService();
+const aimedAttackSvc = new AimedAttackService();
+const equipModSvc = new EquipmentModService();
+const spellManaSvc = new SpellManaService();
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -340,6 +378,389 @@ extraRulesRoutes.get("/:id/combat-xp/:monster", (c: Context) => {
   const monster = c.req.param("monster");
   const status = combatXpSvc.getCombatStatus(gameState.adventurer, monster);
   return c.json(status);
+});
+
+// ── Book 8: Butchery ──────────────────────────────────────────────────────────
+
+extraRulesRoutes.post("/:id/butchery/shade", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const { adventurer, result } = butcherySvc.shadePip(gameState.adventurer);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ ...result, butchery: newState.adventurer.butchery });
+});
+
+extraRulesRoutes.post("/:id/butchery/loot", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const body = await c.req.json();
+  const { tableId, rolls } = z.object({
+    tableId: z.string(),
+    rolls: z.array(z.number().int().min(1).max(100)),
+  }).parse(body);
+  const { adventurer, result } = butcherySvc.rollLoot(gameState.adventurer, tableId, rolls);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ ...result, butchery: newState.adventurer.butchery });
+});
+
+// ── Book 8: Dual Wield ────────────────────────────────────────────────────────
+
+extraRulesRoutes.post("/:id/dual-wield/train", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const { adventurer, result } = dualWieldSvc.trainDualWield(gameState.adventurer);
+  if (!result.success) return c.json({ error: result.message }, 400);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ message: result.message, dualWield: newState.adventurer.dualWield, gold: newState.adventurer.gold });
+});
+
+// ── Book 8: Weapon Proficiency ────────────────────────────────────────────────
+
+extraRulesRoutes.post("/:id/weapon-proficiency/:weapon/pip", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const weapon = decodeURIComponent(c.req.param("weapon"));
+  const { adventurer, result } = weaponProfSvc.shadeProficiencyPip(gameState.adventurer, weapon);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ ...result, weaponProficiency: newState.adventurer.weaponProficiency });
+});
+
+extraRulesRoutes.get("/:id/weapon-proficiency/:weapon", (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const weapon = decodeURIComponent(c.req.param("weapon"));
+  const mods = weaponProfSvc.getProficiencyModifiers(gameState.adventurer, weapon);
+  return c.json(mods);
+});
+
+// ── Book 8: Cheat Death ───────────────────────────────────────────────────────
+
+extraRulesRoutes.post("/:id/cheat-death/activate", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const body = await c.req.json();
+  const { settlementType, shrineRoll } = z.object({
+    settlementType: z.enum(["camp", "village", "town", "city"]),
+    shrineRoll: z.number().int().min(1).max(100),
+  }).parse(body);
+  const { adventurer, result } = cheatDeathSvc.activate(gameState.adventurer, settlementType, shrineRoll);
+  if (!result.success) return c.json({ error: result.message }, 400);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ message: result.message, cheatDeath: newState.adventurer.cheatDeath, gold: newState.adventurer.gold });
+});
+
+extraRulesRoutes.post("/:id/cheat-death/use", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const body = await c.req.json();
+  const { strRoll, dexRoll, intRoll, hpRoll } = z.object({
+    strRoll: z.number().int().min(1).max(6),
+    dexRoll: z.number().int().min(1).max(6),
+    intRoll: z.number().int().min(1).max(6),
+    hpRoll: z.number().int().min(1).max(3),
+  }).parse(body);
+  const { adventurer, result } = cheatDeathSvc.useCheatDeath(gameState.adventurer, strRoll, dexRoll, intRoll, hpRoll);
+  if (!result.success) return c.json({ error: result.message }, 400);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ message: result.message, adventurer: newState.adventurer });
+});
+
+// ── Book 8: Pursuit ───────────────────────────────────────────────────────────
+
+extraRulesRoutes.post("/:id/pursuit", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const body = await c.req.json();
+  const { monster, roll } = z.object({
+    monster: z.object({ name: z.string(), av: z.number(), def: z.number(), dmg: z.number(), hp: z.union([z.string(), z.number()]) }),
+    roll: z.number().int().min(1).max(100),
+  }).parse(body);
+  const { adventurer, result } = pursuitSvc.pursue(gameState.adventurer, monster, roll);
+  await saveAndReturn(c, adventurer);
+  return c.json(result);
+});
+
+// ── Book 8: Secret Passageway ─────────────────────────────────────────────────
+
+extraRulesRoutes.post("/:id/secret-passage/search", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const body = await c.req.json();
+  const { areaId, roll, dangerRoll, boostRoll } = z.object({
+    areaId: z.string(),
+    roll: z.number().int().min(1).max(10),
+    dangerRoll: z.number().int().min(1).max(6).optional(),
+    boostRoll: z.number().int().min(1).max(6).optional(),
+  }).parse(body);
+  const { adventurer, result } = secretPassageSvc.search(gameState.adventurer, areaId, roll, dangerRoll, boostRoll);
+  await saveAndReturn(c, adventurer);
+  return c.json(result);
+});
+
+// ── Book 8: Monster Variant ───────────────────────────────────────────────────
+
+extraRulesRoutes.post("/:id/monster-variant", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const body = await c.req.json();
+  const { monster, triggerRoll, variantRoll } = z.object({
+    monster: z.object({ name: z.string(), av: z.number(), def: z.number(), dmg: z.number(), hp: z.number() }),
+    triggerRoll: z.number().int().min(1).max(10),
+    variantRoll: z.number().int().min(1).max(10),
+  }).parse(body);
+  const { adventurer, result } = monsterVariantSvc.rollVariant(gameState.adventurer, monster, triggerRoll, variantRoll);
+  await saveAndReturn(c, adventurer);
+  return c.json(result);
+});
+
+// ── Book 8: Honour Points ─────────────────────────────────────────────────────
+
+extraRulesRoutes.post("/:id/honour/award", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const body = await c.req.json();
+  const { points } = z.object({ points: z.number().int().min(1) }).parse(body);
+  const { adventurer, result } = honourSvc.award(gameState.adventurer, points);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ ...result, honourPoints: newState.adventurer.honourPoints });
+});
+
+extraRulesRoutes.post("/:id/honour/spend", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const body = await c.req.json();
+  const { action } = z.object({
+    action: z.enum(["reroll_attack", "reroll_damage", "reroll_location", "reroll_test", "reroll_table"]),
+  }).parse(body);
+  const { adventurer, result } = honourSvc.spend(gameState.adventurer, action);
+  if (!result.success) return c.json({ error: result.message }, 400);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ ...result, honourPoints: newState.adventurer.honourPoints });
+});
+
+// ── Book 8: Accolades ─────────────────────────────────────────────────────────
+
+extraRulesRoutes.get("/:id/accolades", (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  return c.json({ accolades: gameState.adventurer.accolades ?? {} });
+});
+
+extraRulesRoutes.post("/:id/accolades/check", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const { adventurer, result } = accoladeSvc.checkAccolades(gameState.adventurer);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ ...result, accolades: newState.adventurer.accolades });
+});
+
+// ── Book 8: Heroic Items ──────────────────────────────────────────────────────
+
+extraRulesRoutes.post("/:id/heroic-item/check", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const body = await c.req.json();
+  const { d6Roll, d10Roll1, d10Roll2 } = z.object({
+    d6Roll: z.number().int().min(1).max(6),
+    d10Roll1: z.number().int().min(1).max(10),
+    d10Roll2: z.number().int().min(1).max(10),
+  }).parse(body);
+  const { adventurer, result } = heroicItemSvc.checkHeroicDrop(gameState.adventurer, d6Roll, d10Roll1, d10Roll2);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ ...result, heroicItemTracker: newState.adventurer.heroicItemTracker });
+});
+
+extraRulesRoutes.post("/:id/heroic-item/generate", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const body = await c.req.json();
+  const { typeRoll, la1Roll, la2Roll } = z.object({
+    typeRoll: z.number().int().min(1).max(4),
+    la1Roll: z.number().int().min(1).max(100),
+    la2Roll: z.number().int().min(1).max(100),
+  }).parse(body);
+  const { adventurer, result } = heroicItemSvc.generateHeroicItem(gameState.adventurer, typeRoll, la1Roll, la2Roll);
+  if (!result.success) return c.json({ error: result.message }, 400);
+  await saveAndReturn(c, adventurer);
+  return c.json(result);
+});
+
+// ── Book 8: Epic Dungeon ──────────────────────────────────────────────────────
+
+extraRulesRoutes.post("/:id/epic-dungeon/begin", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const body = await c.req.json();
+  const { questId } = z.object({ questId: z.string() }).parse(body);
+  const { adventurer, result } = epicDungeonSvc.beginEpicDungeon(gameState.adventurer, questId);
+  if (!result.success) return c.json({ error: result.message }, 400);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ message: result.message, monsterModifiers: result.monsterModifiers, campaignQuests: newState.adventurer.campaignQuests });
+});
+
+// ── Book 8: Identify ──────────────────────────────────────────────────────────
+
+extraRulesRoutes.post("/:id/identify/:itemId", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const body = await c.req.json();
+  const { itemType, roll, cursedRoll } = z.object({
+    itemType: z.enum([
+      "brew_lesser", "brew_finer", "brew_greater", "brew_superior", "brew_exceptional",
+      "potion_lesser", "potion_finer", "potion_greater", "potion_superior", "potion_exceptional",
+      "elixir_finer", "elixir_greater", "elixir_superior", "elixir_exceptional",
+      "legendary",
+    ]),
+    roll: z.number().int().min(1).max(100),
+    cursedRoll: z.number().int().min(1).max(100).optional(),
+  }).parse(body);
+  const { adventurer, result } = identifySvc.identifyItem(gameState.adventurer, itemType, roll, cursedRoll);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json(result);
+});
+
+extraRulesRoutes.post("/:id/remove-curse/:curseIndex", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const curseIndex = parseInt(c.req.param("curseIndex"), 10);
+  const { adventurer, result } = identifySvc.removeItemCurse(gameState.adventurer, curseIndex);
+  if (!result.success) return c.json({ error: result.message }, 400);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ message: result.message, gold: newState.adventurer.gold });
+});
+
+// ── Book 8: Yellow Events ─────────────────────────────────────────────────────
+
+extraRulesRoutes.post("/:id/yellow-event/shade", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const body = await c.req.json();
+  const { d10Roll1, d10Roll2, eventRoll, d6Roll, d100SubRoll } = z.object({
+    d10Roll1: z.number().int().min(1).max(10),
+    d10Roll2: z.number().int().min(1).max(10),
+    eventRoll: z.number().int().min(1).max(100),
+    d6Roll: z.number().int().min(1).max(6).default(1),
+    d100SubRoll: z.number().int().min(1).max(100).default(1),
+  }).parse(body);
+  const { adventurer, result } = yellowEventSvc.rollYellowEvent(gameState.adventurer, d10Roll1, d10Roll2, eventRoll, d6Roll, d100SubRoll);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ ...result, tracker: newState.adventurer.yellowEventTracker });
+});
+
+// ── Book 8: Ammunition ────────────────────────────────────────────────────────
+
+extraRulesRoutes.post("/:id/ammunition/:holder/equip", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const holder = c.req.param("holder") as "pouch" | "quiver" | "bandolier";
+  const { adventurer, result } = ammoSvc.equipHolder(gameState.adventurer, holder);
+  if (!result.success) return c.json({ error: result.message }, 400);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ message: result.message, ammunition: newState.adventurer.ammunition });
+});
+
+extraRulesRoutes.post("/:id/ammunition/:holder/load", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const body = await c.req.json();
+  const { ammoType, quantity } = z.object({
+    ammoType: z.enum(["smoothStones", "leadShot", "bodkinArrows", "broadheadArrows", "crossbowBolts", "heavyQuarrels"]),
+    quantity: z.number().int().min(1),
+  }).parse(body);
+  const { adventurer, result } = ammoSvc.loadAmmo(gameState.adventurer, ammoType, quantity);
+  if (!result.success) return c.json({ error: result.message }, 400);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ message: result.message, remaining: result.remaining, ammunition: newState.adventurer.ammunition });
+});
+
+extraRulesRoutes.post("/:id/ammunition/:type/use", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const ammoType = c.req.param("type") as "smoothStones" | "leadShot" | "bodkinArrows" | "broadheadArrows" | "crossbowBolts" | "heavyQuarrels";
+  const { adventurer, result } = ammoSvc.useAmmo(gameState.adventurer, ammoType);
+  if (!result.success) return c.json({ error: result.message }, 400);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ message: result.message, combatBonus: result.combatBonus, remaining: result.remaining });
+});
+
+// ── Book 8: Thrown Weapons ────────────────────────────────────────────────────
+
+extraRulesRoutes.post("/:id/throw/:weaponSlot", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const weaponSlot = c.req.param("weaponSlot") as "mainHand" | "offHand";
+  const body = await c.req.json();
+  const { attackRoll, damageRoll } = z.object({
+    attackRoll: z.number().int().min(1).max(100),
+    damageRoll: z.number().int().min(1),
+  }).parse(body);
+  const { adventurer, result } = throwSvc.throwWeapon(gameState.adventurer, weaponSlot, attackRoll, damageRoll);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json(result);
+});
+
+extraRulesRoutes.post("/:id/throw/:weaponSlot/retrieve", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const body = await c.req.json();
+  const { weapon, dexRoll } = z.object({
+    weapon: z.object({ name: z.string(), value: z.number().default(0), fix: z.number().default(0), damagePips: z.number().default(0), twoHanded: z.boolean().default(false), usable: z.boolean().default(false), bonus: z.number().default(0) }),
+    dexRoll: z.number().int().min(1).max(100),
+  }).parse(body);
+  const { adventurer, result } = throwSvc.retrieveWeapon(gameState.adventurer, weapon, dexRoll);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json(result);
+});
+
+// ── Book 8: Aimed Attack ──────────────────────────────────────────────────────
+
+extraRulesRoutes.post("/:id/aim/:location", (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const location = c.req.param("location") as AimLocation;
+  const body = c.req.json();
+  return body.then((b) => {
+    const { baseStat, attackRoll, damageRoll, weaponBonus, monsterDef } = z.object({
+      baseStat: z.number().int(),
+      attackRoll: z.number().int().min(1).max(100),
+      damageRoll: z.number().int().min(1),
+      weaponBonus: z.number().int().default(0),
+      monsterDef: z.number().int().default(0),
+    }).parse(b);
+    const { result } = aimedAttackSvc.aim(gameState.adventurer, location, baseStat, attackRoll, damageRoll, weaponBonus, monsterDef);
+    return c.json(result);
+  });
+});
+
+// ── Book 8: Equipment Mods ────────────────────────────────────────────────────
+
+extraRulesRoutes.post("/:id/reinforce-belt/:itemId", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const itemId = decodeURIComponent(c.req.param("itemId"));
+  const { adventurer, result } = equipModSvc.reinforceBelt(gameState.adventurer, itemId);
+  if (!result.success) return c.json({ error: result.message }, 400);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ message: result.message, item: result.item, gold: newState.adventurer.gold });
+});
+
+extraRulesRoutes.post("/:id/spike-shield/:itemId", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const itemId = decodeURIComponent(c.req.param("itemId"));
+  const { adventurer, result } = equipModSvc.spikeShield(gameState.adventurer, itemId);
+  if (!result.success) return c.json({ error: result.message }, 400);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ message: result.message, item: result.item, gold: newState.adventurer.gold });
+});
+
+extraRulesRoutes.post("/:id/check-belt-rv/:itemId", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const itemId = decodeURIComponent(c.req.param("itemId"));
+  const body = await c.req.json();
+  const { d10Roll } = z.object({ d10Roll: z.number().int().min(1).max(10) }).parse(body);
+  const result = equipModSvc.checkBeltRV(gameState.adventurer, itemId, d10Roll);
+  return c.json(result);
+});
+
+// ── Book 8: Spell Mana ────────────────────────────────────────────────────────
+
+extraRulesRoutes.post("/:id/spell-mana/enable", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const { adventurer, result } = spellManaSvc.enableMana(gameState.adventurer);
+  if (!result.success) return c.json({ error: result.message }, 400);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ message: result.message, spellMana: newState.adventurer.spellMana });
+});
+
+extraRulesRoutes.post("/:id/spell-mana/spend", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const body = await c.req.json();
+  const { cost } = z.object({ cost: z.number().int().min(1) }).parse(body);
+  const { adventurer, result } = spellManaSvc.spendMana(gameState.adventurer, cost);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ ...result, spellMana: newState.adventurer.spellMana });
+});
+
+extraRulesRoutes.post("/:id/spell-mana/recover", async (c: Context) => {
+  const gameState = c.get("gameState") as GameState;
+  const body = await c.req.json();
+  const { d3Roll } = z.object({ d3Roll: z.number().int().min(1).max(3) }).parse(body);
+  const { adventurer, result } = spellManaSvc.recoverMana(gameState.adventurer, d3Roll);
+  const newState = await saveAndReturn(c, adventurer);
+  return c.json({ ...result, spellMana: newState.adventurer.spellMana });
 });
 
 export default extraRulesRoutes;

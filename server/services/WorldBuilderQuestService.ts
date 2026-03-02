@@ -15,6 +15,7 @@ import { getSideQuestTemplate } from "../data/world_builder/side_quests_table.ts
 import { NAMES_TABLE } from "../data/world_builder/names_table.ts";
 import { DIRECTION_VECTORS } from "../data/world_builder/terrain_table.ts";
 import { getUniqueTreasureByQuest } from "../data/world_builder/unique_treasures_table.ts";
+import { getQuestE, QuestEEntry } from "../data/curious_rules/quests_e_table.ts";
 
 // ---------------------------------------------------------------------------
 // Input types
@@ -259,6 +260,67 @@ export class WorldBuilderQuestService {
     return true; // actual item verification is done at the route level
   }
 
+  /**
+   * Generate and place a Book 8 Table QE quest on the current hex sheet.
+   * Uses slot codes QE1-QE10. Returns the full QuestEEntry for boss/monster details.
+   *
+   * @param d100Roll  d100 to select which of the 10 QE quests to assign
+   * @param dirRoll   d6 for direction from current hex
+   * @param distRoll  d6 for distance (1d6 hexes)
+   */
+  generateQuestE(
+    adventurer: Adventurer,
+    state: WorldBuilderState,
+    d100Roll: number,
+    dirRoll: number,
+    distRoll: number,
+  ): { adventurer: Adventurer; state: WorldBuilderState; quest: WBQuestRecord; questEntry: QuestEEntry } {
+    const sheet = state.hexSheets[state.currentSheetIndex];
+    if (!sheet) throw new Error("No current hex sheet");
+
+    // Find next available QE slot (QE1-QE10)
+    const existingCodes = new Set(sheet.quests.map((q) => q.code));
+    let nextSlot = -1;
+    for (let i = 1; i <= 10; i++) {
+      if (!existingCodes.has(`QE${i}`)) { nextSlot = i; break; }
+    }
+    if (nextSlot === -1) throw new Error("All 10 QE quest slots are filled on this sheet");
+
+    const questHexId = this._moveFromHex(state.currentHexId, dirRoll, distRoll);
+    const questEntry = getQuestE(d100Roll);
+
+    const quest: WBQuestRecord = {
+      code: `QE${nextSlot}`,
+      hexId: questHexId,
+      tableRoll: d100Roll,
+      name: questEntry.title,
+      details: questEntry.lore,
+      qc: 0,
+      pc: 0,
+      hc: 0,
+      rv: 0,
+      successText: questEntry.successReward,
+      failureText: questEntry.failPenalty,
+      encMod: questEntry.encounterModifier,
+      isUnique: false,
+      requiresHandIn: questEntry.objectives.some((o) => o.type === "collect"),
+      status: "active",
+    };
+
+    const updatedSheet = { ...sheet, quests: [...sheet.quests, quest] };
+    const existingHex = sheet.hexes[questHexId];
+    const updatedHexes = existingHex
+      ? { ...sheet.hexes, [questHexId]: { ...existingHex, questCode: quest.code } }
+      : sheet.hexes;
+
+    const updatedSheets = [...state.hexSheets];
+    updatedSheets[state.currentSheetIndex] = { ...updatedSheet, hexes: updatedHexes };
+
+    const updatedState: WorldBuilderState = { ...state, hexSheets: updatedSheets };
+
+    return { adventurer, state: updatedState, quest, questEntry };
+  }
+
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
@@ -408,7 +470,7 @@ export class WorldBuilderQuestService {
     encMod: number,
   ): QRResult {
     const ft = quest.failureText;
-    if (ft.includes("skill")) {
+    if (ft.toLowerCase().includes("skill")) {
       const m = ft.match(/(\d+) skill/);
       return {
         successGold, successRep,
