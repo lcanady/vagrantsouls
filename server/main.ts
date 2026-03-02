@@ -12,6 +12,7 @@ import downtimeRoutes from "./routes/downtime.ts";
 import questRoutes from "./routes/quests.ts";
 import extraRulesRoutes from "./routes/extrarules.ts";
 import guildsRoutes from "./routes/guilds.ts";
+import worldBuilderRoutes from "./routes/world_builder.ts";
 import { Repository } from "./repository.ts";
 import { authMiddleware } from "./middleware/auth.ts";
 
@@ -51,6 +52,7 @@ app.use("/api/v1/downtime/*", authMiddleware);
 app.use("/api/v1/quests/*", authMiddleware);
 app.use("/api/v1/extra/*", authMiddleware);
 app.use("/api/v1/guilds/adventurer/*", authMiddleware);
+app.use("/api/v1/worldbuilder/*", authMiddleware);
 
 app.route("/api/v1/adventurer", adventurerRoutes);
 app.route("/api/v1/chargen", chargenRoutes);
@@ -61,6 +63,7 @@ app.route("/api/v1/downtime", downtimeRoutes);
 app.route("/api/v1/quests", questRoutes);
 app.route("/api/v1/extra", extraRulesRoutes);
 app.route("/api/v1/guilds", guildsRoutes);
+app.route("/api/v1/worldbuilder", worldBuilderRoutes);
 
 // WebSocket Route
 app.get("/ws/party/:partyId", (c: Context) => {
