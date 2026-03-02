@@ -1,5 +1,6 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { COLORS, EMOJI } from '../constants.ts';
+import { createLogoAttachment, LOGO_ATTACHMENT_NAME } from '../utils/logo.ts';
 
 export const data = new SlashCommandBuilder()
   .setName('help')
@@ -51,9 +52,10 @@ export async function execute(
         ].join('\n'),
       },
     )
+    .setImage(`attachment://${LOGO_ATTACHMENT_NAME}`)
     .setFooter({
       text: 'D100 Dungeon • Based on the solo tabletop RPG by Martin Knight',
     });
 
-  await interaction.reply({ embeds: [embed], ephemeral: true });
+  await interaction.reply({ embeds: [embed], files: [createLogoAttachment()], ephemeral: true });
 }

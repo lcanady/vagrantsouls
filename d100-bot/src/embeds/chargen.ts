@@ -1,6 +1,7 @@
 import { EmbedBuilder } from 'discord.js';
 import { COLORS, EMOJI, PATH_EMOJI, RACE_EMOJI } from '../constants.ts';
 import type { AdventurerData } from '../api/adventurer.ts';
+import { LOGO_ATTACHMENT_NAME } from '../utils/logo.ts';
 
 export function buildChargenStep1Embed(): EmbedBuilder {
   return new EmbedBuilder()
@@ -13,7 +14,8 @@ export function buildChargenStep1Embed(): EmbedBuilder {
         `${EMOJI.dex} **DEX** — ranged attacks, dodge, stealth\n` +
         `${EMOJI.int} **INT** — magic, tame beasts, perception\n\n` +
         '_You have **15 points** to distribute (min 1, max 8 per attribute)._',
-    );
+    )
+    .setImage(`attachment://${LOGO_ATTACHMENT_NAME}`);
 }
 
 export function buildChargenStep2Embed(adv: AdventurerData): EmbedBuilder {

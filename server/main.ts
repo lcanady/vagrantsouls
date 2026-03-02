@@ -31,7 +31,28 @@ app.use("*", async (c: Context, next: Next) => {
 // --- Routes ---
 
 app.get("/", (c: Context) => {
-  return c.json({ message: "Welcome to D100 Dungeon API" });
+  return c.html(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VagrantSoul — D100 Dungeon API</title>
+  <style>
+    body { margin: 0; background: #1a1a2e; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: monospace; color: #f0c040; }
+    img { max-width: 480px; width: 90%; border-radius: 8px; }
+    p { margin: 1.5rem 0 0; font-size: 0.85rem; opacity: 0.6; letter-spacing: 0.1em; }
+  </style>
+</head>
+<body>
+  <img src="/logo.png" alt="VagrantSoul">
+  <p>D100 DUNGEON API · v1</p>
+</body>
+</html>`);
+});
+
+app.get("/logo.png", async (_c: Context) => {
+  const data = await Deno.readFile("./vagrant.png");
+  return new Response(data, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=86400" } });
 });
 
 // Get current game state

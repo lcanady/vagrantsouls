@@ -7,6 +7,7 @@ import { getAccount, saveAccount } from '../db/store.ts';
 import { register } from '../api/auth.ts';
 import { COLORS, EMOJI } from '../constants.ts';
 import { buildErrorEmbed } from '../embeds/error.ts';
+import { createLogoAttachment, LOGO_ATTACHMENT_NAME } from '../utils/logo.ts';
 
 export const data = new SlashCommandBuilder()
   .setName('register')
@@ -49,9 +50,10 @@ export async function execute(
         `Your account has been created.\n\n` +
           `Run \`/create\` to build your adventurer and begin your quest!`,
       )
+      .setImage(`attachment://${LOGO_ATTACHMENT_NAME}`)
       .setFooter({ text: 'Your credentials are stored securely.' });
 
-    await interaction.editReply({ embeds: [embed] });
+    await interaction.editReply({ embeds: [embed], files: [createLogoAttachment()] });
 
     // DM the user
     try {
